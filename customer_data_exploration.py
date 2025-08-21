@@ -1,0 +1,108 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+file_path = "E:/Customer Shopping Trends/shopping_trends.csv"
+data=pd.read_csv(file_path)
+print(data.head())
+print(data.shape)
+print(data.describe())
+print(data.isnull().sum())
+data.dropna(axis=0, inplace=True)
+print(data.columns)
+print(data[['Age', 'Purchase Amount (USD)', 'Review Rating',
+       'Frequency of Purchases']].describe())
+plt.figure(figsize=(10, 6))
+sns.histplot(data['Purchase Amount (USD)'], kde=True)
+plt.title('Distribution of Purchase Amount (USD)')
+plt.xlabel('Purchase Amount (USD)')
+plt.ylabel('Frequency')
+plt.savefig('Distribution of Purchase Amount (USD).png')
+plt.show()
+plt.figure(figsize=(10, 6))
+sns.boxplot(x=data['Review Rating'])
+plt.title('Boxplot of Review Rating')
+plt.savefig('Boxplot_of_Review_Rating.png')
+plt.show()
+plt.figure(figsize=(10, 6))
+sns.scatterplot(x=data['Age'], y=data['Purchase Amount (USD)'])
+plt.title('Age vs Purchase Amount (USD)')
+plt.xlabel('Age')
+plt.ylabel('Purchase Amount (USD)')
+plt.show()
+gender_group = data.groupby('Gender')['Purchase Amount (USD)'].mean()
+print(gender_group)
+season_group = data.groupby('Season')['Purchase Amount (USD)'].mean()
+print(season_group)
+numeric_data = data.select_dtypes(include=['number'])
+correlation_matrix = numeric_data.corr()
+print(correlation_matrix)
+import seaborn as sns
+import matplotlib.pyplot as plt
+plt.figure(figsize=(10, 6))
+sns.heatmap(correlation_matrix, annot=True, cmap='coolwarm', fmt='.2f')
+plt.title('Correlation Heatmap')
+plt.savefig('Correlation_Heatmap.png')
+plt.show()
+X = data[['Age']]
+y = data['Purchase Amount (USD)']
+X = X.dropna()
+y = y.dropna()
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+model = LinearRegression()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+print(f"Model Coefficients: {model.coef_}")
+print(f"Intercept: {model.intercept_}")
+from sklearn.metrics import mean_squared_error, r2_score
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+print(f"Mean Squared Error: {mse}")
+print(f"R-squared: {r2}")
+from sklearn.cluster import KMeans
+X_segmentation = data[['Age', 'Purchase Amount (USD)']]
+X_segmentation = X_segmentation.dropna()
+from sklearn.preprocessing import StandardScaler
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X_segmentation)
+kmeans = KMeans(n_clusters=3, random_state=42)
+data['Cluster'] = kmeans.fit_predict(X_scaled)
+print(data[['Age', 'Purchase Amount (USD)', 'Cluster']].head())
+plt.figure(figsize=(10, 6))
+sns.scatterplot(x=data['Age'], y=data['Purchase Amount (USD)'], hue=data['Cluster'], palette='Set1', s=100, alpha=0.6)
+plt.title('Customer Segmentation (K-Means Clustering)')
+plt.xlabel('Age')
+plt.ylabel('Purchase Amount (USD)')
+plt.savefig('Customer Segmentation (K-Means Clustering).png')
+plt.show()
+X_multi = data[['Age', 'Gender', 'Location']]
+X_multi = pd.get_dummies(X_multi)
+X_train, X_test, y_train, y_test = train_test_split(X_multi, y, test_size=0.2, random_state=42)
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+print(f"Mean Squared Error: {mse}")
+print(f"R-squared: {r2}")
+total_purchase_value = data['Purchase Amount (USD)'].sum()
+total_purchases = len(data)
+average_purchase_value = total_purchase_value / total_purchases
+print(f"Average Purchase Value: {average_purchase_value}")
+purchase_frequency = data.groupby('Customer ID').size().mean()
+print(f"Average Purchase Frequency: {purchase_frequency}")
+customer_lifespan=5
+clv = average_purchase_value * purchase_frequency * customer_lifespan
+print(f"Estimated Customer Lifetime Value (CLV): {clv}")
+customer_avg_purchase_value = data.groupby('Customer ID')['Purchase Amount (USD)'].mean()
+customer_purchase_frequency = data.groupby('Customer ID').size()
+customer_clv = customer_avg_purchase_value * customer_purchase_frequency * customer_lifespan
+data['Customer CLV'] = data['Customer ID'].map(customer_clv)
+print(data[['Customer ID', 'Customer CLV']].head())
+plt.figure(figsize=(10, 6))
+sns.histplot(data['Customer CLV'], kde=True)
+plt.title('Distribution of Customer Lifetime Value (CLV)')
+plt.xlabel('Customer Lifetime Value (USD)')
+plt.ylabel('Frequency')
+plt.savefig('Distribution of Customer Lifetime Value (CLV).png')
+plt.show()
